@@ -149,4 +149,59 @@ async function doUpload(screenWidth,screenHeight,stringPositions,imageLocation)
 
 }
 
-module.exports = {captureScreenshot};
+function readAPIToken() {
+    let rawdata = fs.readFileSync('.applanga.json');
+   
+    let applanga = JSON.parse(rawdata);  
+    
+    let app = applanga.app;
+    let token = app.access_token
+
+    if (token.length < 57 || token.length > 57)  {
+        console.log("Invalid Applanga API token" + " " + token.length)
+        return
+    }
+
+   
+
+    return token
+    
+}
+
+function validateAndfindAppId(str) {
+
+    let exChar = str.charAt(24);
+    if (exChar != "!") {
+        console.log("Invalid Applanga AppID, missing exclamation mark")
+        return
+    }
+    if (str < 25 || str > 25)  {
+        console.log("Invalid Applanga AppID" + " " + str.length)
+        return
+    }
+
+    var subString = str.substr(0 , 24);
+
+    
+    return subString
+
+}
+
+function finalizeToken(str) {
+
+    let bearer = "Bearer" + " " ;
+
+    let accssTkn = bearer.concat(str);
+
+    return accssTkn
+    
+}
+
+function getAPIToken() {
+    let key = readAPIToken()
+    let token = finalizeToken(key)
+
+    return token
+}
+
+module.exports = {captureScreenshot,getAPIToken,validateAndfindAppId};
