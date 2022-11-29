@@ -204,4 +204,11 @@ function getAPIToken() {
     return token
 }
 
-module.exports = {captureScreenshot,getAPIToken,validateAndfindAppId};
+function getAppID() {
+    let token = readAPIToken()
+    let appId = validateAndfindAppId(token)
+
+    return appId
+}
+
+module.exports = {captureScreenshot,getAPIToken,getAppID};
