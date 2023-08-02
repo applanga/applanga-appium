@@ -10,7 +10,7 @@ async function captureScreenshot(driver, tagName, applangaJsonPath) {
   appId = getAppID(applangaJsonPath);
 
   let screenshotLocation = __dirname + '/tmpScreen.png';
-  var dimensions;
+
   try {
     screenshot = await driver.takeScreenshot();
     await fs.promises.writeFile(screenshotLocation, screenshot, 'base64');
@@ -22,12 +22,11 @@ async function captureScreenshot(driver, tagName, applangaJsonPath) {
 
   let xml = await driver.getPageSource();
   let parsedXml = await parseStringPromise(xml);
-  let allTexts = getAllTextOnScreen(driver, parsedXml);
-  let positions = await getAllTextPositions(
-    driver,
-    allTexts,
-    screenshotDimensions
-  );
+  
+  let ratio = await getRatio(driver, screenshotDimensions);
+
+  let positions = []
+  await getAllTextOnScreen(driver, parsedXml, ratio, positions);
 
   await doUpload(
     driver,
@@ -50,69 +49,66 @@ function getDeviceLanguageLong(client) {
   else return language + '-' + country;
 }
 
-function getAllTextOnScreen(driver, object) {
-  var foundTexts = [];
+async function getAllTextOnScreen(driver, object, ratio, positions) {
   for (var key in object) {
     if (object.hasOwnProperty(key)) {
       let value = object[key];
+
       if (typeof value == 'object') {
-        foundTexts = foundTexts.concat(getAllTextOnScreen(driver, value));
+        await getAllTextOnScreen(driver, value, ratio, positions);
       }
+
       var text;
       for (let i = 0; i < value.length; i++) {
         if (value[i]['$'] === undefined) continue;
+
         if (driver.isAndroid) {
           text = value[i]['$']['text'];
         } else {
           text = value[i]['$']['label'];
         }
+
         if (text !== undefined && text != null && text !== '') {
-          foundTexts.push(text);
+          await getTextPositions(value[i], text, ratio, positions);
         }
       }
     }
   }
-  return foundTexts;
 }
 
-async function getAllTextPositions(client, allTexts, screenshotDimensions) {
-  var positions = [];
+async function getRatio(driver, screenshotDimensions) {
   var ratio = 1;
-  if (!client.isAndroid) {
+
+  if (!driver.isAndroid) {
     // get the ratio for iOS devices
     // get screen size
-    const screen = await client.$(`//XCUIElementTypeApplication`);
+    const screen = await driver.$(`//XCUIElementTypeApplication`);
+
     let screenPosition = await screen.getLocation();
     let screenSize = await screen.getSize();
+    
     if (screenPosition.x != 0 || screenPosition.y != 0) {
       console.error(
         'Screen position is not 0,0. This is not supported by Applanga. Please make sure your app is fullscreen.'
       );
     }
-    ratio = screenshotDimensions.width / screenSize.width;
-  } 
-  for (let i = 0; i < allTexts.length; i++) {
-    const textValue = allTexts[i];
-    var element;
-    if (client.isAndroid) {
-      const selector = 'new UiSelector().text("' + textValue + '")';
-      element = await client.$(`android=${selector}`);
-    } else {
-      const selector = `label == '` + textValue + `'`;
-      element = await client.$(`-ios predicate string:${selector}`);
-    }
 
-    let elementPosition = await element.getLocation();
-    let elementSize = await element.getSize();
-    positions.push({
-      text: textValue,
-      x: elementPosition.x * ratio,
-      y: elementPosition.y * ratio,
-      width: elementSize.width * ratio,
-      height: elementSize.height * ratio,
-    });
+    ratio = screenshotDimensions.width / screenSize.width;
   }
-  return positions;
+
+  return ratio;
+}
+
+async function getTextPositions(object, textValue, ratio, positions) {
+  let values = object['$'];
+
+  positions.push({
+    text: textValue,
+    x: values['x'] * ratio,
+    y: values['y'] * ratio,
+    width: values['width'] * ratio,
+    height: values['height'] * ratio,
+  });
 }
 
 async function doUpload(
