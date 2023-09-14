@@ -102,12 +102,26 @@ async function getRatio(driver, screenshotDimensions) {
 async function getTextPositions(object, textValue, ratio, positions) {
   let values = object['$'];
 
+  let x = values['x'];
+  let y = values['y'];
+  let width = values['width'];
+  let height = values['height'];
+
+  let regex = /\[([0-9]+),([0-9]+)\]\[([0-9]+),([0-9]+)\]/g;
+  let matches = regex.exec(values.bounds);
+  if(matches !== null && matches !== undefined && matches.length == 5){
+    x = matches[1];
+    y = matches[2];
+    width = matches[3] - x ;
+    height = matches[4] - y;
+  }
+
   positions.push({
     text: textValue,
-    x: values['x'] * ratio,
-    y: values['y'] * ratio,
-    width: values['width'] * ratio,
-    height: values['height'] * ratio,
+    x: x * ratio,
+    y: y * ratio,
+    width: width * ratio,
+    height: height * ratio,
   });
 }
 
@@ -187,3 +201,4 @@ function getAppID(path) {
 }
 
 module.exports = { captureScreenshot };
+
