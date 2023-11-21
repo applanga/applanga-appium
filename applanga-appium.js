@@ -156,6 +156,7 @@ async function doUpload(
   const headers = {
     Authorization: apiToken,
     'Content-Type': 'multipart/form-data',
+    'X-Integration': 12
   };
   const fullUrl = apiUrl + appId;
   try {
