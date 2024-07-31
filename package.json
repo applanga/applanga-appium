@@ -4,7 +4,8 @@
   "description": "",
   "main": "applanga-appium.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postpublish": "git tag release_${npm_package_version} && git push --tags"
   },
   "author": "",
   "license": "ISC",
