@@ -4,9 +4,9 @@
   "description": "",
   "main": "applanga-appium.js",
   "scripts": {
-    "prepublishOnly": "if [ -n \"$(git status --porcelain=v2)\" ]; then echo 'Error: All changes have to be pushed to remote' && exit 1; fi",
+    "prepublishOnly": "if [ -n \"$(git status --porcelain)\" ]; then echo 'Publish aborted: All local git changes have to be commited' && exit 1; fi",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postpublish": "git tag -a ${npm_package_version} -m 'Appium Deploy' && git push origin ${npm_package_version}"
+    "postpublish": "git push origin main && git tag -a ${npm_package_version} -m 'Appium Deploy' && git push origin ${npm_package_version}"
   },
   "author": "",
   "license": "ISC",
