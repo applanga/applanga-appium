@@ -147,6 +147,7 @@ async function doUpload(
     isBlank: false,
     useOCR: false,
     stringPositions: stringPositions,
+    useFuzzyMatching: false
   };
   const form = {
     data: JSON.stringify(data),
